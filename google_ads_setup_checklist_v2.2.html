@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Ads Setup Checklist — Retrowave</title>
+  <style>
+    :root{
+      --bg1:#0b002b; --bg2:#1a003a; --text:#e6e6ff; --muted:#6b6b91; --good:#12ff9a; --neon1:#ff00e6; --neon2:#00f0ff; --warn:#ff6b6b; --chip:#24194d; --chipBorder: rgba(255,255,255,.18);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin:0; color:var(--text); background:linear-gradient(135deg,var(--bg1),var(--bg2)); padding:28px}
+    h1{ text-align:center; margin:0 0 6px; letter-spacing:.5px; text-shadow:0 0 8px rgba(255,0,230,.3) }
+    p.description{ text-align:center; margin:0 0 22px; color:var(--muted) }
+
+    .section{ margin:16px auto; max-width:980px; border-radius:14px; overflow:hidden; background:linear-gradient(180deg, rgba(19,0,46,.9), rgba(19,0,46,.7)); border:1px solid rgba(255,255,255,.06); box-shadow:0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(0,240,255,.15) inset; transition:opacity .25s ease, filter .25s ease }
+    .section.excluded{ opacity:.4; filter:grayscale(.4) }
+    .section-header{ cursor:pointer; padding:14px 16px; background:linear-gradient(90deg, rgba(255,0,230,.12), rgba(0,240,255,.12)); font-weight:700; display:flex; justify-content:space-between; align-items:center }
+    .section-header .title{ display:flex; align-items:center; gap:10px }
+    .chip{ margin-left:10px; font-size:12px; color:#ffd6fb; background:var(--chip); border:1px solid var(--chipBorder); padding:2px 8px; border-radius:999px; display:inline-flex; align-items:center; gap:6px }
+    .chip.excluded{ color:#ffd0d0; border-color:rgba(255,0,0,.25) }
+    .chip.completed{ color:#d2ffe8; border-color:rgba(57,255,136,.35) }
+    .tasks{ display:none; padding:14px 16px }
+
+    .section-controls{ display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap }
+    .btn{ border:1px solid rgba(0,240,255,.35); background:rgba(0,240,255,.08); color:var(--text); padding:8px 12px; border-radius:10px; cursor:pointer; transition:.2s }
+    .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,240,255,.18), 0 0 12px rgba(0,240,255,.35) inset }
+
+    .task{ display:flex; align-items:center; margin:8px 0; gap:10px; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.04) }
+    .task.done label::before{ content:"✅ " }
+    .task.na label::before{ content:"🚫 " }
+    .task label{ flex:1; cursor:pointer }
+    .task .delete{ border:none; background:transparent; cursor:pointer; font-size:18px }
+
+    .checkbox{ width:20px; height:20px; cursor:pointer; accent-color:var(--good); filter:drop-shadow(0 0 6px rgba(18,255,154,.5)) }
+    .na-toggle{ font-size:12px; padding:4px 8px; border:1px solid rgba(255,0,230,.35); color:#ffd6fb; background:rgba(255,0,230,.06); border-radius:999px; cursor:pointer }
+
+    .pop{ animation:pop .3s ease forwards }
+    @keyframes pop{ 0%{transform:scale(1)} 50%{transform:scale(1.35)} 100%{transform:scale(1)} }
+
+    .progress-container{ position:sticky; top:0; margin:0 auto 16px; max-width:980px; background:linear-gradient(180deg, rgba(19,0,46,.95), rgba(19,0,46,.8)); border:1px solid rgba(255,255,255,.08); padding:12px 14px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(0,240,255,.15) inset; font-weight:700; z-index:2 }
+    .progress-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+    .xp-bar{ margin-top:10px; height:12px; background:rgba(255,255,255,.07); border-radius:999px; overflow:hidden }
+    .xp-fill{ height:100%; background:linear-gradient(90deg,var(--neon1),var(--neon2)); width:0%; transition:width .3s ease; box-shadow:0 0 16px rgba(255,0,230,.45) }
+    .badge{ display:inline-block; margin:6px 6px 0 0; padding:6px 10px; background:linear-gradient(90deg,rgba(255,0,230,.22),rgba(0,240,255,.22)); border:1px solid rgba(255,255,255,.08); border-radius:10px; font-size:12px; font-weight:800 }
+
+    .tooltip{ position:relative; display:inline-block }
+    .tooltip .tiptext{ visibility:hidden; opacity:0; position:absolute; right:0; top:130%; background:#0f0b2b; color:#d7d7ff; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:10px; width:260px; font-weight:500; line-height:1.35; transition:.2s; box-shadow:0 10px 25px rgba(0,0,0,.35); z-index:5 }
+    .tooltip:hover .tiptext{ visibility:visible; opacity:1 }
+
+    .confetti{ position:fixed; top:-10px; width:8px; height:14px; opacity:.9; animation:fall linear forwards }
+    @keyframes fall{ to{ transform:translateY(110vh) rotate(720deg); opacity:1 } }
+  </style>
+</head>
+<body>
+  <div class="progress-container">
+    <div class="progress-row">📈 Progress: <span id="progress">0%</span></div>
+    <div class="progress-row">🆙 Level: <span id="level">1</span></div>
+    <div class="progress-row">
+      ⭐ XP: <span id="xp">0</span>
+      <span class="tooltip" aria-label="XP info" style="margin-left:auto">ℹ️
+        <span class="tiptext">XP counts only <b>Done</b> tasks in <b>non‑excluded</b> sections. <br/>Setting a task to <b>N/A</b> or excluding its section removes its XP. Levels rise and fall with XP (100 XP per level). Excluded sections do not count toward 100% progress.</span>
+      </span>
+    </div>
+    <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+    <div class="progress-row" style="margin-top:8px">
+      <button id="expandAll" class="btn">⤢ Expand All</button>
+      <button id="collapseAll" class="btn">⤡ Collapse All</button>
+      <button id="resetAll" class="btn">🧹 Reset All</button>
+      <details id="badgesWrap" style="margin-left:auto"><summary style="cursor:pointer">🏅 Badges (toggle)</summary><div id="badges" style="margin-top:6px"></div></details>
+    </div>
+  </div>
+
+  <h1>🌅 Google Ads Setup Checklist</h1>
+  <p class="description">Setup by campaign type • neon vibes ✨</p>
+
+  <div id="checklist"></div>
+
+  <div class="footer" style="text-align:center; color:var(--muted); margin-top:24px">Made with ❤️ for enjoyable campaign setups. Data is saved locally in your browser.</div>
+
+  <script>
+    // ===== Data =====
+    const BASE_SECTIONS = {
+      "Search Campaigns": [
+        "Keyword research completed","Campaign & ad group structure finalised","RSA ads created with variations","Extensions added (sitelinks, callouts, etc.)","Audience signals applied","Conversion tracking verified","Bidding strategy chosen","Budget aligned with forecast","Geo & language settings checked"
+      ],
+      "Demand Gen Campaigns": [
+        "Audience signals created","Creative assets uploaded","Headlines/descriptions tested","Landing page relevance checked","Conversion tracking tested","Creative sizes formatted","Budget & bid strategy aligned","Exclusions applied"
+      ],
+      "PMAX for Leads": [
+        "Audience signals added","Lead form extensions set","Creative assets uploaded","Conversion actions prioritised","Exclusions applied","Budget sized for goals","Tracking tested"
+      ],
+      "PMAX for Shopping": [
+        "GMC linked & feed health checked","Shipping/tax configured","Product feed optimised","Conversion tracking verified","Creative assets uploaded","Audience signals added","Budget allocated","Brand exclusions applied"
+      ],
+      "Local PMAX": [
+        "Business Profile linked","Location extensions enabled","Local creative assets uploaded","Call & store visit tracking set","Geo targeting reviewed","Budget aligned","Seasonal offers added"
+      ],
+      "Video Campaigns": [
+        "Campaign subtype chosen","Audience defined","Videos uploaded (multiple versions)","Companion banners/screens added","Conversion tracking tested","Budget & bid strategy selected","Exclusions applied"
+      ],
+      "App Campaigns": [
+        "App linked","Conversion tracking set (installs/events)","Creative assets uploaded","Audience expansion enabled","Campaign goal chosen","Budget & bid strategy aligned","Deep linking tested"
+      ]
+    };
+
+    const FUN_BADGES = { // names without emojis to avoid double icons
+      'Search Campaigns': 'Search Samurai',
+      'Demand Gen Campaigns': 'Demand Gen Dynamo',
+      'PMAX for Leads': 'Lead Lightning',
+      'PMAX for Shopping': 'Shopping Sherpa',
+      'Local PMAX': 'Local Legend',
+      'Video Campaigns': 'Video Virtuoso',
+      'App Campaigns': 'App Ace'
+    };
+
+    const SECTION_ICONS = {
+      'Search Campaigns': '🔎','Demand Gen Campaigns': '🧲','PMAX for Leads': '⚡','PMAX for Shopping': '🛍️','Local PMAX': '📍','Video Campaigns': '🎬','App Campaigns': '📱'
+    };
+
+    const BASE_MAX_LEVEL = 8; // level 1 start + 7 base sections
+
+    // ===== State =====
+    let xp = parseInt(localStorage.getItem('xp')) || 0;
+    let level = parseInt(localStorage.getItem('level')) || 1;
+
+    const checklist = document.getElementById('checklist');
+
+    // ===== Build UI =====
+    rebuildAllSections();
+
+    // Toolbar events
+    document.getElementById('expandAll').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      document.querySelectorAll('.tasks').forEach(el => el.style.display = 'block');
+    });
+    document.getElementById('collapseAll').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      document.querySelectorAll('.tasks').forEach(el => el.style.display = 'none');
+    });
+    document.getElementById('resetAll').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      resetAllApp();
+    });
+
+    function rebuildAllSections(){
+      checklist.innerHTML = '';
+      Object.entries(BASE_SECTIONS).forEach(([title, tasks], idx) => makeSection(title, tasks, idx));
+      updateProgress();
+    }
+
+    // ===== Reset All (robust) =====
+    function resetAllApp(){
+      if (!confirm('This will clear all progress, XP, levels, badges, and custom tasks. Continue?')) return;
+      // Remove transient UI
+      document.querySelectorAll('.confetti').forEach(n => n.remove());
+      // Clear storage and flags
+      localStorage.clear();
+      localStorage.setItem('celebrated100','false');
+      // Reset numbers immediately
+      xp = 0; level = 1;
+      document.getElementById('progress').textContent = '0%';
+      document.getElementById('xp').textContent = '0';
+      document.getElementById('level').textContent = '1';
+            document.getElementById('xpFill').style.width = '0%';
+      // Clear badges and rebuild sections fresh
+      clearBadgesUI();
+      rebuildAllSections();
+    }
+
+    // ===== Helpers =====
+    function clearBadgesUI(){
+      const wrap = document.getElementById('badges');
+      while (wrap.firstChild) wrap.removeChild(wrap.firstChild);
+    }
+
+    function renderBadgesFromState(){
+      clearBadgesUI();
+      const wrap = document.getElementById('badges');
+      Object.keys(BASE_SECTIONS).forEach(title => {
+        const excluded = getExcludedFlag(title);
+        const completed = JSON.parse(localStorage.getItem(`sectionComplete::${title}`) || 'false');
+        if (completed && !excluded){
+          const text = `${SECTION_ICONS[title]||'🏆'} ${FUN_BADGES[title] || `${title} Master`}`;
+          addUniqueBadge(text);
+        }
+      });
+      const celebrated = JSON.parse(localStorage.getItem('celebrated100') || 'false');
+      const {percent} = computePercent();
+      if (celebrated && percent === 100){ addUniqueBadge('🎉 100% Checklist Complete!'); }
+    }
+
+    function addUniqueBadge(text){
+      const wrap = document.getElementById('badges');
+      const exists = [...wrap.children].some(node => node.textContent === text);
+      if (exists) return;
+      const badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.textContent = text;
+      wrap.appendChild(badge);
+    }
+
+    function makeSection(title, tasks, idx){
+      const section = document.createElement('div');
+      section.className = 'section';
+      section.dataset.title = title;
+      if (getExcludedFlag(title)) section.classList.add('excluded');
+
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML = `<span class="title"><span class="icon">${SECTION_ICONS[title]||'✨'}</span>${title}</span><span>▼</span>`;
+
+      const taskList = document.createElement('div');
+      taskList.className = 'tasks';
+
+      const controls = document.createElement('div');
+      controls.className = 'section-controls';
+
+      const btnToggleNA = document.createElement('button');
+      btnToggleNA.className = 'btn';
+      btnToggleNA.textContent = getExcludedFlag(title) ? '🚫 Unmark Section N/A' : '🚫 Mark Section N/A';
+      btnToggleNA.onclick = () => toggleSectionNA(section, btnToggleNA);
+
+      const btnReset = document.createElement('button');
+      btnReset.className = 'btn';
+      btnReset.textContent = '🔄 Reset Section';
+      btnReset.onclick = () => resetSection(section);
+
+      const addWrap = document.createElement('div');
+      addWrap.style.display = 'flex'; addWrap.style.gap = '8px';
+      const addInput = document.createElement('input');
+      addInput.type = 'text'; addInput.placeholder = 'Add custom task...'; addInput.style.flex = '1';
+      addInput.style.background = 'rgba(255,255,255,.06)'; addInput.style.border = '1px solid rgba(255,255,255,.12)'; addInput.style.color = 'var(--text)'; addInput.style.borderRadius = '10px'; addInput.style.padding = '8px 10px';
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn'; addBtn.textContent = '➕ Add';
+      addBtn.onclick = () => { const v = addInput.value.trim(); if(!v) return; addCustomTask(title, v, taskList); addInput.value = ''; updateProgress(); };
+
+      controls.appendChild(btnToggleNA);
+      controls.appendChild(btnReset);
+      addWrap.appendChild(addInput); addWrap.appendChild(addBtn);
+      controls.appendChild(addWrap);
+      taskList.appendChild(controls);
+
+      tasks.forEach(task => createTask(title, task, taskList, false));
+
+      const customKey = `custom::${title}`;
+      const customList = JSON.parse(localStorage.getItem(customKey) || '[]');
+      customList.forEach(task => createTask(title, task, taskList, true));
+
+      header.addEventListener('click', () => {
+        taskList.style.display = taskList.style.display === 'block' ? 'none' : 'block';
+      });
+
+      section.appendChild(header);
+      section.appendChild(taskList);
+      checklist.appendChild(section);
+
+      updateHeaderStatusChips(section);
+    }
+
+    function updateHeaderStatusChips(section){
+      const titleEl = section.querySelector('.section-header .title');
+      if (!titleEl) return;
+      titleEl.querySelectorAll('.chip').forEach(n => n.remove());
+      const title = section.dataset.title;
+      if (getExcludedFlag(title)){
+        const chip = document.createElement('span'); chip.className = 'chip excluded'; chip.textContent = '🚫 Excluded'; titleEl.appendChild(chip);
+      }
+      if (!getExcludedFlag(title) && isSectionComplete(section) && sectionHasAtLeastOneDone(section)){
+        const chip = document.createElement('span'); chip.className = 'chip completed'; chip.textContent = '✅ Completed'; titleEl.appendChild(chip);
+      }
+    }
+
+    function addCustomTask(sectionTitle, task, taskList){
+      const customKey = `custom::${sectionTitle}`;
+      const list = JSON.parse(localStorage.getItem(customKey) || '[]');
+      if(!list.includes(task)){ list.push(task); localStorage.setItem(customKey, JSON.stringify(list)); }
+      createTask(sectionTitle, task, taskList, true);
+      updateProgress();
+    }
+
+    function storageKey(sectionTitle, task){ return `${sectionTitle}::${task}`; }
+    function getExcludedFlag(title){ return JSON.parse(localStorage.getItem(`sectionExcluded::${title}`) || 'false'); }
+    function setExcludedFlag(title,val){ localStorage.setItem(`sectionExcluded::${title}`, JSON.stringify(!!val)); }
+
+    function createTask(sectionTitle, task, taskList, isCustom){
+      const div = document.createElement('div');
+      div.className = 'task'; div.dataset.task = task; div.dataset.custom = isCustom ? '1' : '0';
+
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'checkbox';
+      const label = document.createElement('label'); label.textContent = task;
+      const naBtn = document.createElement('span'); naBtn.className = 'na-toggle';
+
+      const key = storageKey(sectionTitle, task);
+      const saved = localStorage.getItem(key) || 'pending';
+      if(saved === 'done'){ checkbox.checked = true; div.classList.add('done'); }
+      if(saved === 'na'){ div.classList.add('na'); naBtn.textContent = 'N/A'; } else { naBtn.textContent = 'Mark N/A'; }
+
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked){ localStorage.setItem(key,'done'); div.classList.add('done'); bubblePop(checkbox); }
+        else { localStorage.setItem(key,'pending'); div.classList.remove('done'); }
+        setExcludedFlag(sectionTitle, false);
+        const section = div.closest('.section'); updateProgress(); handleSectionCompletion(section); updateHeaderStatusChips(section);
+      });
+
+      naBtn.addEventListener('click', () => {
+        const current = localStorage.getItem(key) || 'pending';
+        if (current === 'na'){ localStorage.setItem(key, checkbox.checked ? 'done' : 'pending'); div.classList.remove('na'); naBtn.textContent = 'Mark N/A'; }
+        else { localStorage.setItem(key,'na'); div.classList.add('na'); naBtn.textContent = 'N/A'; }
+        setExcludedFlag(sectionTitle, false);
+        const section = div.closest('.section'); updateProgress(); handleSectionCompletion(section); updateHeaderStatusChips(section);
+      });
+
+      if (isCustom){
+        const del = document.createElement('button'); del.className = 'delete'; del.title = 'Delete task'; del.textContent = '🗑️'; del.onclick = () => deleteCustomTask(sectionTitle, task, div); div.appendChild(del);
+      }
+
+      div.appendChild(checkbox); div.appendChild(label); div.appendChild(naBtn);
+      taskList.appendChild(div);
+    }
+
+    function deleteCustomTask(sectionTitle, task, taskEl){
+      const section = taskEl.closest('.section');
+      localStorage.removeItem(storageKey(sectionTitle, task));
+      const customKey = `custom::${sectionTitle}`;
+      const list = JSON.parse(localStorage.getItem(customKey) || '[]').filter(t => t !== task);
+      localStorage.setItem(customKey, JSON.stringify(list));
+      taskEl.remove(); updateProgress(); handleSectionCompletion(section); updateHeaderStatusChips(section);
+    }
+
+    function toggleSectionNA(section, btn){
+      const title = section?.dataset?.title || '';
+      const tasks = section.querySelectorAll('.task');
+      const allNA = [...tasks].every(t => (localStorage.getItem(storageKey(title, t.dataset.task)) || 'pending') === 'na');
+      const newVal = allNA ? 'pending' : 'na';
+      tasks.forEach(t => {
+        const key = storageKey(title, t.dataset.task);
+        localStorage.setItem(key, newVal);
+        t.classList.remove('done','na'); if (newVal === 'na') t.classList.add('na');
+        const cb = t.querySelector('.checkbox'); if (cb) cb.checked = false;
+        const pill = t.querySelector('.na-toggle'); if (pill) pill.textContent = newVal === 'na' ? 'N/A' : 'Mark N/A';
+      });
+      const excluded = (newVal === 'na'); setExcludedFlag(title, excluded); section.classList.toggle('excluded', excluded);
+      btn.textContent = excluded ? '🚫 Unmark Section N/A' : '🚫 Mark Section N/A';
+      updateProgress(); handleSectionCompletion(section); updateHeaderStatusChips(section);
+    }
+
+    function resetSection(section){
+      const title = section?.dataset?.title || '';
+      if (title){ localStorage.removeItem(`sectionComplete::${title}`); setExcludedFlag(title,false); }
+      section.classList.remove('excluded');
+      section.querySelectorAll('.task').forEach(t => {
+        const key = storageKey(title, t.dataset.task);
+        localStorage.setItem(key, 'pending'); t.classList.remove('done','na');
+        const cb = t.querySelector('.checkbox'); if (cb) cb.checked = false;
+        const pill = t.querySelector('.na-toggle'); if (pill) pill.textContent = 'Mark N/A';
+        if (t.dataset.custom === '1') t.remove();
+      });
+      const btn = section.querySelector('.section-controls .btn'); if (btn) btn.textContent = '🚫 Mark Section N/A';
+      updateProgress(); updateHeaderStatusChips(section);
+    }
+
+    function isSectionComplete(section){
+      if(!section) return false; const title = section?.dataset?.title; const tasks = section.querySelectorAll('.task'); if(tasks.length === 0) return false;
+      const states = [...tasks].map(t => localStorage.getItem(storageKey(title, t.dataset.task)) || 'pending');
+      return states.every(s => s === 'done' || s === 'na');
+    }
+
+    function sectionHasAtLeastOneDone(section){
+      const title = section?.dataset?.title; const tasks = section.querySelectorAll('.task');
+      return [...tasks].some(t => (localStorage.getItem(storageKey(title, t.dataset.task)) || 'pending') === 'done');
+    }
+
+        function recomputeXP(){
+      let total = 0;
+      document.querySelectorAll('.section').forEach(section => {
+        const title = section?.dataset?.title; if (getExcludedFlag(title)) return;
+        section.querySelectorAll('.task').forEach(t => {
+          const key = storageKey(title, t.dataset.task); const val = localStorage.getItem(key) || 'pending'; const isCustom = t.dataset.custom === '1';
+          if (val === 'done'){ total += 10; if (isCustom) total += 100; }
+        });
+        if (isSectionComplete(section) && sectionHasAtLeastOneDone(section)) total += 100;
+      });
+      xp = total; localStorage.setItem('xp', xp);
+    }
+
+    function celebrate(){
+      localStorage.setItem('celebrated100','true');
+      renderBadgesFromState();
+      for (let i=0;i<140;i++){
+        const piece = document.createElement('div'); piece.className = 'confetti';
+        piece.style.left = Math.random()*100 + 'vw'; piece.style.background = `hsl(${Math.floor(Math.random()*360)},90%,60%)`;
+        piece.style.animationDuration = (4 + Math.random()*3) + 's'; piece.style.transform = `rotate(${Math.random()*360}deg)`;
+        document.body.appendChild(piece); setTimeout(()=> piece.remove(), 8000);
+      }
+    }
+
+    function handleSectionCompletion(section){
+      if(!section) return; const title = section?.dataset?.title; if(!title) return; const excluded = getExcludedFlag(title);
+      const key = `sectionComplete::${title}`;
+      if (!excluded && isSectionComplete(section) && sectionHasAtLeastOneDone(section) && !JSON.parse(localStorage.getItem(key) || 'false')){
+        localStorage.setItem(key, 'true');
+        updateProgress();
+      }
+    }
+
+    function bubblePop(el){ el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 300); }
+
+    function computePercent(){
+      const allTaskEls = document.querySelectorAll('.task'); let total = 0, completed = 0;
+      allTaskEls.forEach(t => { const sectionTitle = t.closest('.section')?.dataset?.title; if (getExcludedFlag(sectionTitle)) return; total++; const val = localStorage.getItem(storageKey(sectionTitle, t.dataset.task)) || 'pending'; if (val === 'done' || val === 'na') completed++; });
+      const percent = total ? Math.round((completed/total)*100) : 0; return {percent,total,completed};
+    }
+
+    function updateAllHeaders(){ document.querySelectorAll('.section').forEach(updateHeaderStatusChips); }
+
+    function updateProgress(){
+      recomputeXP();
+      const derivedLevel = Math.max(1, 1 + Math.floor(xp/100));
+      if (derivedLevel !== level){ level = derivedLevel; localStorage.setItem('level', level); }
+
+      const {percent,total} = computePercent();
+      document.getElementById('progress').textContent = percent + '%';
+      document.getElementById('xp').textContent = xp; document.getElementById('level').textContent = level; document.getElementById('xpFill').style.width = (xp % 100) + '%';
+
+      renderBadgesFromState(); updateAllHeaders();
+
+      const celebrated = JSON.parse(localStorage.getItem('celebrated100') || 'false');
+      if (percent === 100 && total > 0 && !celebrated){ celebrate(); }
+      if ((percent < 100 || total === 0) && celebrated){ localStorage.setItem('celebrated100','false'); renderBadgesFromState(); }
+    }
+
+    // Initial compute
+    updateProgress();
+  </script>
+</body>
+</html>
